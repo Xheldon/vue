@@ -153,7 +153,7 @@ export function defineReactive (
     val = obj[key]
   }
 
-  let childOb = !shallow && observe(val)
+  let childOb = !shallow && observe(val) // 注意 observe 返回的也是个 Observer, 因此 childOb 也是个 Observer 的实例, 由 observer 函数定义可知, childOb 指向的是 val 的 val.__ob__ 对象
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,

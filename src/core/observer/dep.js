@@ -30,7 +30,7 @@ export default class Dep {
 
   depend () {
     if (Dep.target) {
-      Dep.target.addDep(this)
+      Dep.target.addDep(this) // 调用 watcher 的 addDep 方法
     }
   }
 
@@ -52,7 +52,7 @@ export default class Dep {
 // The current target watcher being evaluated.
 // This is globally unique because only one watcher
 // can be evaluated at a time.
-Dep.target = null
+Dep.target = null // 这个 Deploy.target 静态属性是作为一个全局属性, 随时添加随时移除的; wather 到哪个, 哪个就调用这个, 用完就出栈; 因此 下面的 pushTarget 和 popTarget 总是成对出现
 const targetStack = []
 
 export function pushTarget (target: ?Watcher) {
