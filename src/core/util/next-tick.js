@@ -111,7 +111,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
     }
   }
   // $flow-disable-line
-  if (!cb && typeof Promise !== 'undefined') {
+  if (!cb && typeof Promise !== 'undefined') { // 这条最好放上面, 不然 _resolve 猛一看 undefined 👎
     return new Promise(resolve => {
       _resolve = resolve
     })

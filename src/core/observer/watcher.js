@@ -76,10 +76,10 @@ export default class Watcher {
       ? expOrFn.toString()
       : ''
     // parse expression for getter
-    if (typeof expOrFn === 'function') {
-      this.getter = expOrFn
-    } else {
-      this.getter = parsePath(expOrFn)
+    if (typeof expOrFn === 'function') { // 触发根实例的时候(即渲染函数的观察者)
+      this.getter = expOrFn // watch 实例的时候是 updateComponent 函数, 该函数执行后触发 vm._render 和 vm._update
+    } else { // 触发 组件的时候
+      this.getter = parsePath(expOrFn) // 获取能执行取值操作的函数
       if (!this.getter) {
         this.getter = noop
         process.env.NODE_ENV !== 'production' && warn(
@@ -92,14 +92,14 @@ export default class Watcher {
     }
     this.value = this.lazy
       ? undefined
-      : this.get()
+      : this.get() // 触发 get 拦截器, 收集依赖
   }
 
   /**
    * Evaluate the getter, and re-collect dependencies.
    */
   get () {
-    pushTarget(this)
+    pushTarget(this) // 这一句直接在构造函数的静态方法上进行操作, 目的是为了跟 Dep 实例进行通信, 为了不妨碍其他的 watcher, 用完要用配套的 popTarget
     let value
     const vm = this.vm
     try {
@@ -125,13 +125,13 @@ export default class Watcher {
   /**
    * Add a dependency to this directive.
    */
-  addDep (dep: Dep) {
-    const id = dep.id
-    if (!this.newDepIds.has(id)) {
+  addDep (dep: Dep) { // watcher 加到 dep 中
+    const id = dep.id // 这个 dep 是 observe 观察的闭包中引用的 dep
+    if (!this.newDepIds.has(id)) { // Set 构造函数, 防止重复 id
       this.newDepIds.add(id)
       this.newDeps.push(dep)
       if (!this.depIds.has(id)) {
-        dep.addSub(this)
+        dep.addSub(this) // 加到 Dep 的 subs 里面, 等待 Dep 的 notify 逐个调用 watch 的 update 方法
       }
     }
   }
@@ -143,11 +143,11 @@ export default class Watcher {
     let i = this.deps.length
     while (i--) {
       const dep = this.deps[i]
-      if (!this.newDepIds.has(dep.id)) {
+      if (!this.newDepIds.has(dep.id)) { // 上一次求值对象不存在于本次求值中, 则把 被观察对象的 watcher 移除
         dep.removeSub(this)
       }
     }
-    let tmp = this.depIds
+    let tmp = this.depIds // 没有必要 tmp, 直接 newDepIds 赋值给 depIds 然后清空 newDepIds 不行吗?
     this.depIds = this.newDepIds
     this.newDepIds = tmp
     this.newDepIds.clear()
@@ -176,9 +176,9 @@ export default class Watcher {
    * Scheduler job interface.
    * Will be called by the scheduler.
    */
-  run () {
+  run () { // set 时 => dep.notity => watcher 的 update => 最终调用 run 方法
     if (this.active) {
-      const value = this.get()
+      const value = this.get() // get 时会执行 dep.depend 但是已经去重过了, 因此不会再收集此处的依赖
       if (
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
