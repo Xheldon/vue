@@ -43,6 +43,7 @@ export function initMixin (Vue: Class<Component>) {
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
+      // 使用装饰器模式, 在开发环境给与友好提示
       initProxy(vm)
     } else {
       vm._renderProxy = vm
