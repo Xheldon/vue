@@ -91,7 +91,7 @@ export function withMacroTask (fn: Function): Function {
 
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
-  callbacks.push(() => {
+  callbacks.push(() => { // 词法作用域, 函数在被书写的时候即确定了变量所在的位置, 不会在执行的时候再查找变量, 因此虽然现在未执行 callback 中的 cb, 即使后面 cb 变了, callback 执行的也还是当前调用的 cb
     if (cb) {
       try {
         cb.call(ctx)
