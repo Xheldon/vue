@@ -143,14 +143,14 @@ export function queueWatcher (watcher: Watcher) {
       queue.splice(i + 1, 0, watcher)
     }
     // queue the flush
-    if (!waiting) {
+    if (!waiting) { // 首次触发 watch 之后, 该部分分支不会再触发
       waiting = true
 
-      if (process.env.NODE_ENV !== 'production' && !config.async) {
+      if (process.env.NODE_ENV !== 'production' && !config.async) { // async 默认是 false, 除非 同步执行观察者
         flushSchedulerQueue()
         return
       }
-      nextTick(flushSchedulerQueue)
+      nextTick(flushSchedulerQueue) // dep.nitity() 的循环 watcher.update() 执行完后, 再来执行被 nextTick 加入到执行队列底部的 flushSchedulerQueue 函数
     }
   }
 }
