@@ -143,7 +143,7 @@ export function queueWatcher (watcher: Watcher) {
       queue.splice(i + 1, 0, watcher)
     }
     // queue the flush
-    if (!waiting) { // 首次触发 watch 之后, 该部分分支不会再触发
+    if (!waiting) { // 首次触发 watch 之后, 该部分分支不会再触发, 即 queueWatcher 只会执行一次下面的代码
       waiting = true
 
       if (process.env.NODE_ENV !== 'production' && !config.async) { // async 默认是 false, 除非 同步执行观察者

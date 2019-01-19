@@ -139,7 +139,7 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
-  const dep = new Dep()
+  const dep = new Dep(); // 闭包引用依赖, 之后的 watcher 将加入该 dep
 
   const property = Object.getOwnPropertyDescriptor(obj, key)
   if (property && property.configurable === false) {
@@ -152,14 +152,16 @@ export function defineReactive (
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
-
+  
+  // 递归观察 val
+  // observe 被 vm.watch 和 Vue.set 方法调用进行观察
   let childOb = !shallow && observe(val) // 注意 observe 返回的也是个 Observer, 因此 childOb 也是个 Observer 的实例, 由 observer 函数定义可知, childOb 指向的是 val 的 val.__ob__ 对象
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
-      if (Dep.target) {
+      if (Dep.target) { // watcher 函数存在的话, 其 get 方法会将 wather 示例会被赋值给 Dep.target
         dep.depend()
         if (childOb) {
           childOb.dep.depend()

@@ -184,7 +184,11 @@ function initComputed (vm: Component, computed: Object) {
 
     if (!isSSR) {
       // create internal watcher for the computed property.
-      watchers[key] = new Watcher(
+      // 每个计算属性 添加一个观察者, new Watcher 的时候就已经触发了 vm 的 getter 取值操作
+      // 因此触发了计算属性中依赖的响应式数据(即 data 上的数据), 因此其依赖的 data 将当前 watcher 放到了其闭包 dep 中, 以在 set data 属性的时候 触发该 计算属性 watcher 的 update
+      // 问: 为什么 computed 不和 data 上的数据一起更新, 而偏偏要单独循环更新一下呢?
+      // 答: 新建 watcher 的时候, 与 data 的参数不同
+      watchers[key] = new Watcher( 
         vm,
         getter || noop,
         noop,
@@ -196,7 +200,7 @@ function initComputed (vm: Component, computed: Object) {
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
     if (!(key in vm)) {
-      defineComputed(vm, key, userDef)
+      defineComputed(vm, key, userDef) // 每个计算属性都 define 一遍
     } else if (process.env.NODE_ENV !== 'production') {
       if (key in vm.$data) {
         warn(`The computed property "${key}" is already defined in data.`, vm)
@@ -235,18 +239,18 @@ export function defineComputed (
       )
     }
   }
-  Object.defineProperty(target, key, sharedPropertyDefinition)
+  Object.defineProperty(target, key, sharedPropertyDefinition) // 定义到 vm 示例上, 因此才能用  this.someComputed 进行取值操作, get 的时候触发 get 拦截器, 然后粗
 }
 
 function createComputedGetter (key) {
   return function computedGetter () {
-    const watcher = this._computedWatchers && this._computedWatchers[key]
+    const watcher = this._computedWatchers && this._computedWatchers[key] // 由上可知, 计算属性的 watcher 跟 __computedWatchers 指向相同地方;
     if (watcher) {
       if (watcher.dirty) {
         watcher.evaluate()
       }
-      if (Dep.target) {
-        watcher.depend()
+      if (Dep.target) { // Dep.target 当前为 渲染函数的观察者
+        watcher.depend() // 再次收集一遍依赖?
       }
       return watcher.value
     }

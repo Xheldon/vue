@@ -61,7 +61,7 @@ if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
   const p = Promise.resolve()
   microTimerFunc = () => {
-    p.then(flushCallbacks)
+    p.then(flushCallbacks) // 加入到微任务队列, 此时可能 watcher 的 update 正在执行第一个 update 以及其内的 queueWatcher
     // in problematic UIWebViews, Promise.then doesn't completely break, but
     // it can get stuck in a weird state where callbacks are pushed into the
     // microtask queue but the queue isn't being flushed, until the browser
@@ -94,7 +94,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
   callbacks.push(() => { // 词法作用域, 函数在被书写的时候即确定了变量所在的位置, 不会在执行的时候再查找变量, 因此虽然现在未执行 callback 中的 cb, 即使后面 cb 变了, callback 执行的也还是当前调用的 cb
     if (cb) {
       try {
-        cb.call(ctx)
+        cb.call(ctx) // cb 为 flushSchedulerQueue 函数, 用来处理 queue 队列
       } catch (e) {
         handleError(e, ctx, 'nextTick')
       }
@@ -102,7 +102,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
       _resolve(ctx)
     }
   })
-  if (!pending) {
+  if (!pending) { // 多次调用, 先放到 callback 中, 即使第一次已经调用了 microTimerFunc(), 但由于后者是 异步微任务, 因此晚于同步任务(即多次调用 nextTick) 执行
     pending = true
     if (useMacroTask) {
       macroTimerFunc()

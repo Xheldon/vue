@@ -60,6 +60,7 @@ export function parseHTML (html, options) {
   while (html) {
     last = html
     // Make sure we're not in a plaintext content element like script/style
+    // 从 html 文本头开始解析, 遇到一个标签/属性/节点就匹配一下一种情况, 解析完毕后删除, 重新循环, 知道 html 为空
     if (!lastTag || !isPlainTextElement(lastTag)) {
       let textEnd = html.indexOf('<')
       if (textEnd === 0) {
